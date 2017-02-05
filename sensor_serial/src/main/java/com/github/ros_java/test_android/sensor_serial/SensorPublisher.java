@@ -25,17 +25,6 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
 import com.google.android.gms.location.LocationListener;
-import android.os.Bundle;
-import android.os.SystemClock;
-import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.util.Log;
-
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
 
 import org.ros.concurrent.CancellableLoop;
 import org.ros.concurrent.Holder;
@@ -59,14 +48,9 @@ import std_msgs.Header;
  */
 // TODO : consider filtering barometric altitude and GPS altitude
 
-public class SensorPublisher extends AbstractNodeMain implements
-        SensorEventListener,
-        LocationListener {
+public class SensorPublisher extends AbstractNodeMain implements SensorEventListener, LocationListener{
 
-    private Context mContext;
     private SensorManager mSensorManager;
-
-
 
     private List<Sensor> sensors;
 
@@ -76,8 +60,8 @@ public class SensorPublisher extends AbstractNodeMain implements
     private float[] mAcceleration; //linear acceleration
     private float[] mOrientation;
     private float[] mGyroscope; // angular velocity
+
     private Location location;
-    private float[] mGlobal; //lat,long,alt
 
     private final float mSeaPressure = 1020; // mBar @ Boston Logan Airport
 
@@ -96,16 +80,13 @@ public class SensorPublisher extends AbstractNodeMain implements
         mAcceleration = new float[3];
         mOrientation = new float[4]; //quaternion
         mGyroscope = new float[3];
-        mGlobal = new float[3]; //lat,long,alt
 
-        mGlobal[0] = (float) 42.2932; // olin location
-        mGlobal[1] = (float) -71.2637;
-        mGlobal[2] = (float) 0; // default to 0... :/
+        location = new Location(""); //probably ok
 
-        // prepare quaternion for orientation transformation
-
-        //Quaternion q = new Quaternion(decl,0,0,1);
-
+        // Parameters for OLIN
+        location.setLatitude(42.2932);
+        location.setLongitude(-71.2637);
+        location.setAltitude(88);
     }
 
     /* Sensor Related Stuff */
@@ -121,10 +102,10 @@ public class SensorPublisher extends AbstractNodeMain implements
                 mGyroscope = event.values;
                 break;
             case Sensor.TYPE_PRESSURE:
-                mGlobal[2] = SensorManager.getAltitude(mSeaPressure, event.values[0]);
-                break;
+               location.setAltitude(SensorManager.getAltitude(mSeaPressure, event.values[0]));
+               break;
             case Sensor.TYPE_ROTATION_VECTOR:
-                GeomagneticField g = new GeomagneticField(mGlobal[0], mGlobal[1], mGlobal[2], System.currentTimeMillis());
+                GeomagneticField g = new GeomagneticField((float)location.getLatitude(),(float)location.getLongitude(), (float)location.getAltitude(), System.currentTimeMillis());
                 float decl = g.getDeclination();
                 SensorManager.getQuaternionFromVector(mOrientation, event.values);
 
@@ -152,13 +133,13 @@ public class SensorPublisher extends AbstractNodeMain implements
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        // ADJUST COVARIANCE HERE??
+        // TODO: ADJUST COVARIANCE HERE??
     }
 
     public void registerListeners() {
         // register all listeners
         for (Sensor s : sensors) {
-            mSensorManager.registerListener(this, s, SensorManager.SENSOR_DELAY_FASTEST);//TODO: make this FASTEST?
+            mSensorManager.registerListener(this, s, SensorManager.SENSOR_DELAY_FASTEST);
         }
     }
 
@@ -168,11 +149,21 @@ public class SensorPublisher extends AbstractNodeMain implements
 
 
     /* GPS Related Stuff */
-    @Override
+
     public void onLocationChanged(Location location) {
-        this.location = location;
+        if(location.getAltitude() != 0){
+            this.location = location;
+        }else{
+            // essentially, use data from barometer
+            this.location.setLatitude(location.getLatitude());
+            this.location.setLongitude(location.getLongitude());
+        }
+        //this.location = location;
+
         if(gpsPublisher != null){
             gpsPublisher.update(location);
+            //TODO : update covariance
+            //gpsPublisher.updateCovariance(location.getAccuracy());
         }
     }
 
@@ -200,6 +191,7 @@ public class SensorPublisher extends AbstractNodeMain implements
             @Override
             protected void loop() throws InterruptedException {
                 imuPublisher.publish();
+                gpsPublisher.publish();
                 Thread.sleep(5);
             }
         });

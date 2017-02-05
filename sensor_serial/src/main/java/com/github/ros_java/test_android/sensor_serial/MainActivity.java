@@ -24,6 +24,7 @@ public class MainActivity extends RosActivity implements
 {
 
     private SensorPublisher publisher;
+
     private GoogleApiClient mGoogleApiClient;
     private boolean gps_permitted;
 
@@ -40,6 +41,10 @@ public class MainActivity extends RosActivity implements
         publisher.registerListeners();
 
         n.execute(publisher, nodeConfiguration);
+
+        if(mGoogleApiClient != null){
+            mGoogleApiClient.connect();
+        }
     }
     /** Called when the activity is first created. */
     @Override
@@ -76,13 +81,16 @@ public class MainActivity extends RosActivity implements
         }
 
         if(gps_permitted){
-            mGoogleApiClient.connect();
+            buildGoogleAPIClient();
         }
 
     }
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         gps_permitted = (grantResults.length > 0) && (grantResults[0] == PackageManager.PERMISSION_GRANTED);
+        if(gps_permitted){
+            buildGoogleAPIClient();
+        }
     }
 
     @Override
@@ -123,18 +131,23 @@ public class MainActivity extends RosActivity implements
 
     }
 
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
+    void startLocationService(){
         LocationRequest mLocationRequest = LocationRequest.create();
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        mLocationRequest.setInterval(100); // Update location every .1 second
+        mLocationRequest.setInterval(20); // Update location every .1 second
         try{
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest,this.publisher);
+            if(publisher != null && mGoogleApiClient.isConnected()){
+                LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,mLocationRequest,this.publisher);
+            }
         }catch(SecurityException e){
             Log.e("RUNTIME-PERMISSIONS", "FAILED TO REQUEST FUSED LOCATION API");
             e.printStackTrace();
         }
+    }
 
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        startLocationService();
     }
 
     @Override

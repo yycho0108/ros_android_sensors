@@ -29,24 +29,10 @@ public class GPSPublisher extends AbstractNodeMain {
 
     private void initialize(){
 
-        // initialize covariances
-        double[] lc = {
-                0.01,0,0,
-                0,0.01,0,
-                0,0,0.01
-        };
-        double[] ac = {
-                0.025,0,0,
-                0,0.025,0,
-                0,0,0.025
-        };
-        double[] oc = {
-                0.001,0,0,
-                0,0.001,0,
-                0,0,0.001
-        };
+        msg.getStatus().setService(NavSatStatus.SERVICE_GPS);
+        msg.getStatus().setService(NavSatStatus.STATUS_FIX);
 
-        updateCovariance(lc,ac,oc);
+        updateCovariance();
         // no value yet
         updated = false;
     }
@@ -63,14 +49,13 @@ public class GPSPublisher extends AbstractNodeMain {
         msg.setLatitude(location.getLatitude());
         msg.setLongitude(location.getLongitude());
         msg.setAltitude(location.getAltitude());
-
-        msg.getStatus().setService(NavSatStatus.SERVICE_GPS);
-        msg.getStatus().setService(NavSatStatus.STATUS_FIX);
     }
 
     //TODO : Implement covariance updates
-    public void updateCovariance(double[] lc, double[] ac, double[] oc){
-
+    public void updateCovariance(){
+        //sob..
+        //msg.setPositionCovariance(__reasonable__values__)
+        msg.setPositionCovarianceType(NavSatFix.COVARIANCE_TYPE_UNKNOWN);
     }
 
     public void publish() {
