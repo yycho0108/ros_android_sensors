@@ -22,7 +22,7 @@ public class GPSPublisher extends AbstractNodeMain {
     private boolean updated;
 
     public GPSPublisher(final ConnectedNode connectedNode) {
-        this.publisher = connectedNode.newPublisher("android_gps", NavSatFix._TYPE);
+        this.publisher = connectedNode.newPublisher("android/gps", NavSatFix._TYPE);
         this.msg = publisher.newMessage();
         initialize();
     }
@@ -32,14 +32,14 @@ public class GPSPublisher extends AbstractNodeMain {
         msg.getStatus().setService(NavSatStatus.SERVICE_GPS);
         msg.getStatus().setService(NavSatStatus.STATUS_FIX);
 
-        updateCovariance();
         // no value yet
+        msg.setPositionCovarianceType(NavSatFix.COVARIANCE_TYPE_UNKNOWN);
         updated = false;
     }
 
     @Override
     public GraphName getDefaultNodeName() {
-        return GraphName.of("android_gps");
+        return GraphName.of("android/gps");
     }
 
 
@@ -49,13 +49,17 @@ public class GPSPublisher extends AbstractNodeMain {
         msg.setLatitude(location.getLatitude());
         msg.setLongitude(location.getLongitude());
         msg.setAltitude(location.getAltitude());
+
+        updateCovariance(location.getAccuracy());
     }
 
-    //TODO : Implement covariance updates
-    public void updateCovariance(){
-        //sob..
-        //msg.setPositionCovariance(__reasonable__values__)
-        msg.setPositionCovarianceType(NavSatFix.COVARIANCE_TYPE_UNKNOWN);
+
+    public void updateCovariance(double a){
+        msg.setPositionCovariance(new double[]{
+                a*a,0,0,
+                0,a*a,0,
+                0,0,a*a});
+        msg.setPositionCovarianceType(NavSatFix.COVARIANCE_TYPE_DIAGONAL_KNOWN); //known-ish
     }
 
     public void publish() {

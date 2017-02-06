@@ -20,7 +20,7 @@ public class Quaternion {
         this(q.w,q.x,q.y,q.z);
     }
     static Quaternion fromAxisAngle(float[] axis, float angle){
-        final float w = (float)Math.cos(angle);
+        final float w = (float)Math.cos(angle/2);
         final float s = (float)Math.sin(angle/2);
         final float qx = axis[0] * s;
         final float qy = axis[1] * s;

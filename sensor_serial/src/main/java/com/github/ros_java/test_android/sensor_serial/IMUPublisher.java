@@ -21,7 +21,7 @@ public class IMUPublisher extends AbstractNodeMain {
     private boolean updated;
 
     public IMUPublisher(final ConnectedNode connectedNode) {
-        this.publisher = connectedNode.newPublisher("android_imu", sensor_msgs.Imu._TYPE);
+        this.publisher = connectedNode.newPublisher("android/imu", sensor_msgs.Imu._TYPE);
         this.msg = publisher.newMessage();
         initialize();
     }
@@ -52,7 +52,7 @@ public class IMUPublisher extends AbstractNodeMain {
 
     @Override
     public GraphName getDefaultNodeName() {
-        return GraphName.of("android_imu");
+        return GraphName.of("android/imu");
     }
 
 

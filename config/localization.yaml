@@ -1,0 +1,30 @@
+odom_frame: odom
+base_link_frame: base_link
+world_frame: odom 
+
+publish_tf: true # TODO : what?
+two_d_mode: true
+frequency: 50
+
+# GPS
+odom0: /odometry/gps
+odom0_config: [true, true, true, # pos x y z
+               false, false, false, # local orientation x y z # Pose
+               false, false, false, # lin_vel x y z
+               false, false, false, #ang_vel x y z # Twist
+               false, false, false] # lin_acc x y z # No Accel
+odom0_differential: false 
+odom0_relative: false 
+odom0_queue_size: 10
+
+# IMU
+imu0: /android/imu
+imu0_config: [false, false, false, # no position data
+              true, true, true, # Orientation
+              false, false, false, # no velocity data
+              true, true, true, # Angular Velocity
+              true, true, true] # Linear Acceleration
+imu0_differential: false # Absolute Orientation (w.r.t magnetic field)
+imu0_relative: false #
+imu0_queue_size: 10
+imu0_remove_gravitational_acceleration: false # already removed

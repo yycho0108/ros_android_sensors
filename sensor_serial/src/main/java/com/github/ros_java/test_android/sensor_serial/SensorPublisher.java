@@ -24,6 +24,8 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
+import android.util.Log;
+
 import com.google.android.gms.location.LocationListener;
 
 import org.ros.concurrent.CancellableLoop;
@@ -106,12 +108,17 @@ public class SensorPublisher extends AbstractNodeMain implements SensorEventList
                break;
             case Sensor.TYPE_ROTATION_VECTOR:
                 GeomagneticField g = new GeomagneticField((float)location.getLatitude(),(float)location.getLongitude(), (float)location.getAltitude(), System.currentTimeMillis());
-                float decl = g.getDeclination();
+                double decl = Math.toRadians(g.getDeclination());
+                //Log.i("decl", String.valueOf(decl));
+
                 SensorManager.getQuaternionFromVector(mOrientation, event.values);
 
                 Quaternion q = new Quaternion(mOrientation); //w,x,y,z
-                Quaternion q1 = Quaternion.fromAxisAngle(new float[]{0,0,1}, -decl); // Correct for Magnetic Declination
-                q = q.mul(q1);
+
+                // TODO : verify rectification for magnetic declination
+                //Quaternion q1 = Quaternion.fromAxisAngle(new float[]{0,0,1}, (float)(0)); // Correct for Magnetic Declination and x-y discrepancy
+                //q = q.mul(q1);
+
                 //q.normalize();
                 mOrientation[0] = q.w;
                 mOrientation[1] = q.x;
@@ -162,8 +169,7 @@ public class SensorPublisher extends AbstractNodeMain implements SensorEventList
 
         if(gpsPublisher != null){
             gpsPublisher.update(location);
-            //TODO : update covariance
-            //gpsPublisher.updateCovariance(location.getAccuracy());
+            gpsPublisher.updateCovariance(location.getAccuracy());
         }
     }
 
