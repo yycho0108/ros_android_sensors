@@ -2,7 +2,7 @@ odom_frame: odom
 base_link_frame: base_link
 world_frame: odom 
 
-publish_tf: true # TODO : what?
+publish_tf: true
 two_d_mode: true
 frequency: 50
 
@@ -13,7 +13,7 @@ odom0_config: [true, true, true, # pos x y z
                false, false, false, # lin_vel x y z
                false, false, false, #ang_vel x y z # Twist
                false, false, false] # lin_acc x y z # No Accel
-odom0_differential: false 
+odom0_differential: false  #if turned on, make position --> velocity
 odom0_relative: false 
 odom0_queue_size: 10
 
@@ -23,7 +23,7 @@ imu0_config: [false, false, false, # no position data
               true, true, true, # Orientation
               false, false, false, # no velocity data
               true, true, true, # Angular Velocity
-              true, true, true] # Linear Acceleration
+              true, true, true] # Linear Acceleration #TODO : disable y-direction acceleration for diff-drive robot!
 imu0_differential: false # Absolute Orientation (w.r.t magnetic field)
 imu0_relative: false #
 imu0_queue_size: 10

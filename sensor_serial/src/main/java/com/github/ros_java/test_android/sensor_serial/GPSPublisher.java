@@ -50,6 +50,9 @@ public class GPSPublisher extends AbstractNodeMain {
         msg.setLongitude(location.getLongitude());
         msg.setAltitude(location.getAltitude());
 
+        //location.getSpeed(); TODO : figure out value of this?
+        //location.getBearing();
+
         updateCovariance(location.getAccuracy());
     }
 

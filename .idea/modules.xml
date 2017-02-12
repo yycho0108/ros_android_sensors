@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/openCVLibrary320/openCVLibrary320.iml" filepath="$PROJECT_DIR$/openCVLibrary320/openCVLibrary320.iml" />
       <module fileurl="file://$PROJECT_DIR$/sensor_serial/sensor_serial.iml" filepath="$PROJECT_DIR$/sensor_serial/sensor_serial.iml" />
       <module fileurl="file://$PROJECT_DIR$/test_android.iml" filepath="$PROJECT_DIR$/test_android.iml" />
     </modules>
