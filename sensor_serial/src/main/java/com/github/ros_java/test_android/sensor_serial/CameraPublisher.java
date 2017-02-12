@@ -14,6 +14,7 @@ import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
 import org.ros.node.topic.Publisher;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -31,8 +32,8 @@ import sensor_msgs.CompressedImage;
 //thus the image would probably have to be compressed
 
 public class CameraPublisher extends AbstractNodeMain {
-    private final Publisher<Image> publisher;
-    private Image msg;
+    private final Publisher<CompressedImage> publisher;
+    private CompressedImage msg;
     private CameraInfo msg_info;
 
 
@@ -40,13 +41,14 @@ public class CameraPublisher extends AbstractNodeMain {
 
     private boolean initialized = false;
     private int width,height, nChannels;
-    private ChannelBuffer cb;
-    private byte[] bb;
+    private Bitmap bmp;
+    private ChannelBufferOutputStream stream;
+
 
     private long last_published = 0;
 
     public CameraPublisher(final ConnectedNode connectedNode) {
-        this.publisher = connectedNode.newPublisher("android/image_raw", Image._TYPE);
+        this.publisher = connectedNode.newPublisher("android/image_raw/compressed", CompressedImage._TYPE);
         this.msg = publisher.newMessage();
     }
 
@@ -60,13 +62,14 @@ public class CameraPublisher extends AbstractNodeMain {
         width = img.width();
         height = img.height();
         nChannels = img.channels();
-        bb = new byte[width*height*nChannels];
-        cb = ChannelBuffers.wrappedBuffer(ByteOrder.LITTLE_ENDIAN, bb);
 
-        msg.setEncoding("rgba8");
-        msg.setWidth(width);
-        msg.setHeight(height);
-        msg.setStep(nChannels*width);
+        stream = new ChannelBufferOutputStream(MessageBuffers.dynamicBuffer());
+        //stream = new ChannelBufferOutputStream(ChannelBuffers.directBuffer(ByteOrder.LITTLE_ENDIAN, width*height*nChannels));
+        bmp = Bitmap.createBitmap(img.width(),img.height(), Bitmap.Config.ARGB_8888);
+
+        msg.setFormat("jpeg");
+        //there was literally NO HOPE with PNG or RAW.
+
 
         //msg_info.setWidth(width);
         //msg_info.setHeight(height);
@@ -79,18 +82,26 @@ public class CameraPublisher extends AbstractNodeMain {
             initialized = true;
         }
 
-        updated = true;
+        try{
+            Utils.matToBitmap(img,bmp);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bmp.compress(Bitmap.CompressFormat.JPEG, 100, baos);
 
-        img.get(0,0,bb); //bb is modified here
-        cb.resetReaderIndex();
-        msg.setData(cb);
+            stream.buffer().clear();
+            stream.buffer().writeBytes(baos.toByteArray());
+            msg.setData(stream.buffer()); //should I copy?
+            updated = true;
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+
     }
 
     public void publish() {
         long now = System.currentTimeMillis();
         float dt = (now - last_published);
         dt /= 1000;
-        float hz = 1; // 10 hz publish rate
+        float hz = 30; // publish rate
 
         //only publish when data got updated
         if(updated && (dt > 1/hz)){
