@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.WindowManager;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -84,6 +85,9 @@ public class MainActivity extends RosActivity implements
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+
+        // just for calibration ...
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         mOpenCVCameraView = (CameraBridgeViewBase) findViewById(R.id.opencv_view);
         mOpenCVCameraView.setVisibility(SurfaceView.VISIBLE);
@@ -163,6 +167,7 @@ public class MainActivity extends RosActivity implements
     protected void onPause() {
         super.onPause();
         if (mOpenCVCameraView != null) {
+            // consider removing this?
             mOpenCVCameraView.disableView();
         }
 

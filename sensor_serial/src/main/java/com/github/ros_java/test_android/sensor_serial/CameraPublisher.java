@@ -33,9 +33,9 @@ import sensor_msgs.CompressedImage;
 
 public class CameraPublisher extends AbstractNodeMain {
     private final Publisher<CompressedImage> publisher;
+    private final Publisher<CameraInfo> infoPublisher;
     private CompressedImage msg;
-    private CameraInfo msg_info;
-
+    private CameraInfo infoMsg;
 
     private boolean updated = false;
 
@@ -44,12 +44,14 @@ public class CameraPublisher extends AbstractNodeMain {
     private Bitmap bmp;
     private ChannelBufferOutputStream stream;
 
-
     private long last_published = 0;
 
     public CameraPublisher(final ConnectedNode connectedNode) {
         this.publisher = connectedNode.newPublisher("android/image_raw/compressed", CompressedImage._TYPE);
+        this.infoPublisher = connectedNode.newPublisher("android/camera_info", CameraInfo._TYPE);
+
         this.msg = publisher.newMessage();
+        this.infoMsg = infoPublisher.newMessage();
     }
 
     @Override
@@ -68,11 +70,36 @@ public class CameraPublisher extends AbstractNodeMain {
         bmp = Bitmap.createBitmap(img.width(),img.height(), Bitmap.Config.ARGB_8888);
 
         msg.setFormat("jpeg");
+
         //there was literally NO HOPE with PNG or RAW.
+        infoMsg.setHeight(height);
+        infoMsg.setWidth(width);
 
+        final double[] K = new double[]{
+                635.242267, 0.000000, 310.804609,
+                0.000000, 636.478649, 260.775183,
+                0.000000, 0.000000, 1.000000
+        };
+        final double[] D = new double[]{0.212890, -0.504582, 0.001392, -0.005476, 0.000000};
 
-        //msg_info.setWidth(width);
-        //msg_info.setHeight(height);
+        final double[] R = new double[]{
+                1,0,0,
+                0,1,0,
+                0,0,1
+        };
+        final double[] P = new double[]{
+                647.669006, 0.000000, 307.565991, 0.000000,
+                0.000000, 651.221130, 260.785669, 0.000000,
+                0.000000, 0.000000, 1.000000, 0.000000
+        };
+
+        infoMsg.setDistortionModel("plumb_bob"); //TODO: ?? narrow_stereo?
+        infoMsg.setK(K);
+        infoMsg.setD(D);
+        infoMsg.setR(R);
+        infoMsg.setP(P);
+        // leave binning_x as default
+
         //TODO : fill calibration params after I figure it out
     }
 
@@ -89,7 +116,7 @@ public class CameraPublisher extends AbstractNodeMain {
 
             stream.buffer().clear();
             stream.buffer().writeBytes(baos.toByteArray());
-            msg.setData(stream.buffer()); //should I copy?
+            msg.setData(stream.buffer());
             updated = true;
         }catch(Exception e){
             e.printStackTrace();
@@ -107,8 +134,12 @@ public class CameraPublisher extends AbstractNodeMain {
         if(updated && (dt > 1/hz)){
             updated = false;
             last_published = now;
+
             Utilities.setHeader(msg.getHeader()); // populate header
+            Utilities.setHeader(infoMsg.getHeader());
+
             publisher.publish(msg);
+            infoPublisher.publish(infoMsg);
         }
     }
 }

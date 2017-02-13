@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+	<!-- republish compressed image to image -->
+	<node pkg="image_transport" type="republish" name="republisher"
+		args="compressed in:=/android/image_raw raw out:=/android/image_raw"/> 
+	<node pkg="image_proc" type="image_proc" name="image_proc" ns="android"
+		args="image:=/image_raw"/>
+</launch>
