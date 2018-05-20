@@ -2,9 +2,11 @@
 
 Ros Interface to Android Sensors!
 
+This project is compatible with [Android Studio](https://developer.android.com/studio/).
+
 Heavily Inspired by [ros\_android\_sensors\_driver](https://github.com/ros-android/android_sensors_driver) during development.
 
-Currently Supporting Android 6.0 (Marshmallow) API 23
+Currently Supporting Android 7.0 (Nougat) API 24
 
 Intended for Aiding Robot Navigation and Localization
 
@@ -20,15 +22,30 @@ List of Supported Sensors:
 
 Other Tasks:
 
-- Revise Covariance Matrices dynamically based on professed sensor accuracy
-- Consider Odometry Visualization with onboard Kalman filter?
-- Consider Serial Communication, or other modes of connection with the robot
+- [ ] Support for Visual Odometry
+- [ ] Support for Fused Odometry?
 
-## How to Run
+## Dependencies
+
+- [android\_core](http://wiki.ros.org/android_core)
+
+In my case, I installed the library as:
+
+```bash
+cd ~/libs
+mkdir -p android_core/src
+wstool init -j4 src https://raw.github.com/rosjava/rosjava/kinetic/android_core.rosinstall
+catkin build
+echo 'source ~/libs/android_core/devel/setup.bash' >> ~/.bashrc
+```
+
+Remember to add the `--extend` option for any overlaying workspace afterwards.
+
+## Run
 
 ### [Optional] Configure USB Tethering
 
-Before you start, the below steps are recommended if you don't want to risk network disconnection. 
+Before you start, consider the below steps if you don't want to bother with connection over wireless network.
 
 1. Edit the network interfaces file:
 
@@ -71,12 +88,14 @@ Now you should be ready to go!
 
 	Whether or not it is usb0/wlan0, etc. is dependent on how you configured the network settings.
 
+    Be sure to have the phone connected to the same network as the host computer!
+
 3. Launch the app, and enter the IP address.
 
 4. To test whether or not the topics are being published:
 
 	```bash
 	rostopic list
-	rostopic echo /android_imu
-	rostopic echo /android_gps
+	rostopic echo /android/imu
+	rostopic echo /android/gps
 	```
