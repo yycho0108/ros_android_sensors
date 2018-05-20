@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      package="com.github.ros_java.test_android.sensor_serial"
-      android:versionCode="1"
-      android:versionName="1.0">
-
+      package="com.github.ros_java.test_android.sensor_serial">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
@@ -11,9 +8,6 @@
     <!-- GPS -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-
-    <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-        package="com.google.android.gms.location.sample.locationupdates" />
 
     <!-- IMU -->
     <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="true" />

@@ -26,10 +26,8 @@ import android.hardware.SensorManager;
 import android.location.Location;
 import android.util.Log;
 
-import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.*;
 
-import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.core.Mat;
 import org.ros.concurrent.CancellableLoop;
 import org.ros.concurrent.Holder;
 import org.ros.message.Time;
@@ -53,9 +51,7 @@ import std_msgs.Header;
 // TODO : consider filtering barometric altitude and GPS altitude
 
 public class SensorPublisher extends AbstractNodeMain implements
-        SensorEventListener,
-        LocationListener,
-        CameraBridgeViewBase.CvCameraViewListener2{
+        SensorEventListener{
 
     private SensorManager mSensorManager;
 
@@ -63,7 +59,6 @@ public class SensorPublisher extends AbstractNodeMain implements
 
     private IMUPublisher imuPublisher;
     private GPSPublisher gpsPublisher;
-    private CameraPublisher cameraPublisher;
 
     // IMU
     private float[] mAcceleration; //linear acceleration
@@ -73,9 +68,6 @@ public class SensorPublisher extends AbstractNodeMain implements
     // GPS
     private Location location;
     private final float mSeaPressure = 1020; // mBar @ Boston Logan Airport
-
-    // Camera
-    private Mat mRgba, mGray;
 
     public SensorPublisher(Context mContext, NodeMainExecutor n) {
         mSensorManager = (SensorManager) mContext.getSystemService(Context.SENSOR_SERVICE);
@@ -183,29 +175,6 @@ public class SensorPublisher extends AbstractNodeMain implements
         }
     }
 
-    /* Camera Related Stuff */
-
-    @Override
-    public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
-        mRgba = inputFrame.rgba();
-        if(cameraPublisher != null){
-            cameraPublisher.update(mRgba);
-        }
-        return mRgba;
-    }
-
-    @Override
-    public void onCameraViewStopped() {
-        mRgba.release();
-        mGray.release();
-        // meh
-    }
-
-    @Override
-    public void onCameraViewStarted(int width, int height) {
-        mRgba = new Mat();
-        mGray = new Mat();
-    }
     /* ROS Related Stuff */
 
     @Override
@@ -218,7 +187,6 @@ public class SensorPublisher extends AbstractNodeMain implements
 
         imuPublisher = new IMUPublisher(connectedNode);
         gpsPublisher = new GPSPublisher(connectedNode);
-        cameraPublisher = new CameraPublisher(connectedNode);
 
         // This CancellableLoop will be canceled automatically when the node shuts
         // down.
@@ -234,7 +202,7 @@ public class SensorPublisher extends AbstractNodeMain implements
                 imuPublisher.publish();
                 gpsPublisher.publish();
                 //TODO : implement and check publication flags
-                cameraPublisher.publish();
+
             }
         });
     }

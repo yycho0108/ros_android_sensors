@@ -30,14 +30,14 @@ public class IMUPublisher extends AbstractNodeMain {
 
         // initialize covariances
         double[] lc = {
-                0.01,0,0,
-                0,0.01,0,
-                0,0,0.01
+                2e-4,0,0,
+                0,3e-4,0,
+                0,0,3e-4
         };
         double[] ac = {
-                0.025,0,0,
-                0,0.025,0,
-                0,0,0.025
+                1e-6,0,0,
+                0,1e-6,0,
+                0,0,1e-6
         };
         double[] oc = {
                 0.001,0,0,
@@ -68,7 +68,6 @@ public class IMUPublisher extends AbstractNodeMain {
         msg.getAngularVelocity().setZ(angVel[2]);
 
         //orientation = w,x,y,z
-
         msg.getOrientation().setW(orientation[0]); // order is x,y,z,w in ROS
         msg.getOrientation().setX(orientation[1]);
         msg.getOrientation().setY(orientation[2]);

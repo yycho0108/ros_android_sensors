@@ -15,21 +15,71 @@
  */
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.14.1'
-
+    gradleVersion = '4.4.0'
 }
 
+
 buildscript {
-    apply from: "https://github.com/rosjava/android_core/raw/indigo/buildscript.gradle"
+    //apply from: "https://github.com/rosjava/android_core/raw/kinetic/buildscript.gradle"
+    String rosMavenPath = System.getenv("ROS_MAVEN_PATH")
+    String rosMavenRepository = System.getenv("ROS_MAVEN_REPOSITORY")
+    repositories {
+        if (rosMavenPath != null) {
+            rosMavenPath.tokenize(":").each { path ->
+                maven {
+                    // We can't use uri() here because we aren't running inside something
+                    // that implements the Script interface.
+                    url "file:${path}"
+                }
+            }
+        }
+        maven {
+            url "http://repository.springsource.com/maven/bundles/release"
+        }
+        maven {
+            url "http://repository.springsource.com/maven/bundles/external"
+        }
+        if (rosMavenRepository != null) {
+            maven {
+                url rosMavenRepository
+            }
+        }
+        maven {
+            url "https://github.com/rosjava/rosjava_mvn_repo/raw/master"
+        }
+        jcenter()
+    }
+
+    dependencies {
+        classpath "org.ros.rosjava_bootstrap:gradle_plugins:[0.3,0.4)"
+    }
+
+    repositories {
+        maven {
+            url 'https://maven.google.com/'
+            name 'Google'
+        }
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.1.2'
+        classpath 'com.google.gms:google-services:3.3.0'
+    }
 }
 
 apply plugin: 'catkin'
-
 
 allprojects {
     /* A github url provides a good standard unique name for your project */
     group 'com.github.rosjava.test_android'
     version = project.catkin.pkg.version
+
+    repositories {
+        maven {
+            url 'https://maven.google.com/'
+            name 'Google'
+        }
+    }
+
 }
 
 subprojects {

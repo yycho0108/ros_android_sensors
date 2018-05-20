@@ -19,4 +19,4 @@ include 'my_android_project'
 include 'my_android_library_project'
 */
 include 'sensor_serial'
-include ':openCVLibrary320'
+//include ':openCVLibrary320'
